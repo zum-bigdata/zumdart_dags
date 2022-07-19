@@ -30,7 +30,7 @@ from textwrap import dedent
 from airflow import DAG
 
 # Operators; we need this to operate!
-from airflow.operators.bash import PythonOperator
+from airflow.operators.python import PythonOperator
 
 from airflow.example_dags.libs.helper import print_stuff
 from kubernetes.client import models as k8s
