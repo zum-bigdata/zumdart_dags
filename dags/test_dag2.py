@@ -27,6 +27,7 @@ from datetime import datetime, timedelta
 from textwrap import dedent
 
 # The DAG object; we'll need this to instantiate a DAG
+import os
 from airflow import DAG
 
 # Operators; we need this to operate!
@@ -72,6 +73,17 @@ with DAG(
 ) as dag:
     # [END instantiate_dag]
 
+    def test_volume_mount():
+        """
+        Tests whether the volume has been mounted.
+        """
+        with open('/foo/volume_mount_test.txt', 'w') as foo:
+            foo.write('Hello')
+
+        return_code = os.system("cat /foo/volume_mount_test.txt")
+        if return_code != 0:
+            raise ValueError(f"Error when checking volume mount. Return code {return_code}")
+
     # t1, t2 and t3 are examples of tasks created by instantiating operators
     # [START basic_task]
     t1 = PythonOperator(
@@ -82,6 +94,33 @@ with DAG(
         },
     )
 
-    t1
+    volume_task = PythonOperator(
+        task_id="task_with_volume",
+        python_callable=test_volume_mount,
+        executor_config={
+            "pod_override": k8s.V1Pod(
+                spec=k8s.V1PodSpec(
+                    containers=[
+                        k8s.V1Container(
+                            name="base",
+                            volume_mounts=[
+                                k8s.V1VolumeMount(
+                                    mount_path="/foo/", name="example-kubernetes-test-volume"
+                                )
+                            ],
+                        )
+                    ],
+                    volumes=[
+                        k8s.V1Volume(
+                            name="example-kubernetes-test-volume",
+                            host_path=k8s.V1HostPathVolumeSource(path="/tmp/"),
+                        )
+                    ],
+                )
+            ),
+        },
+    )
+
+    t1 >> volume_task
 
 # [END tutorial]
