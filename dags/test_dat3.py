@@ -77,6 +77,7 @@ with DAG(
         name='pod-ex-minimum',
         cmds=['echo'],
         namespace='zumdart',
-        image='gcr.io/gcp-runtimes/ubuntu_18_0_4')
+        image='gcr.io/gcp-runtimes/ubuntu_18_0_4'
     )
+
     kubernetes_min_pod
