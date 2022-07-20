@@ -71,14 +71,18 @@ with DAG(
     catchup=False,
     tags=['example'],
 ) as dag:
-    k = KubernetesPodOperator(
-        name="print_stuff",
-        image="debian",
+    quay_k8s = KubernetesPodOperator(
+        namespace='default',
+        image='quay.io/apache/bash',
+        image_pull_secrets=[k8s.V1LocalObjectReference('testquay')],
         cmds=["bash", "-cx"],
-        arguments=["echo", "10"],
+        arguments=["echo", "10", "echo pwd"],
         labels={"foo": "bar"},
-        task_id="print_stuff_demo",
-        do_xcom_push=True,
+        name="airflow-private-image-pod",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="task-two",
+        get_logs=True,
     )
 
-    k
+    quay_k8s
